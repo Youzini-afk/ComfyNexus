@@ -1,0 +1,30 @@
+{
+  "title": "GPU 实例",
+  "subtitle": "管理通过 SSH 接入的 ComfyUI 算力实例",
+  "empty": "尚未配置 GPU 实例",
+  "addInstance": "添加实例",
+  "editInstance": "编辑实例",
+  "fields": {
+    "name": "名称",
+    "sshHost": "SSH 主机",
+    "sshPort": "SSH 端口",
+    "sshUser": "SSH 用户",
+    "sshKeySource": "私钥来源",
+    "sshKeyPEM": "私钥内容（PEM）",
+    "sshKeyPath": "私钥文件路径",
+    "sshPassphrase": "私钥口令（可选）",
+    "hostFingerprint": "主机指纹（可选）",
+    "comfyHost": "ComfyUI 监听地址",
+    "comfyPort": "ComfyUI 端口",
+    "comfyRoot": "ComfyUI 根目录",
+    "comfyStartCmd": "启动命令",
+    "notes": "备注"
+  },
+  "keySource": {
+    "inline": "粘贴/上传 PEM",
+    "mounted": "服务器挂载文件"
+  },
+  "uploadKey": "选择密钥文件",
+  "testOk": "连接成功",
+  "testFailed": "连接失败：{{err}}"
+}

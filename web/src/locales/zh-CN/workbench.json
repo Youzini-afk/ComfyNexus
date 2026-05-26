@@ -1,0 +1,7 @@
+{
+  "title": "工作台",
+  "noActive": "尚未激活 GPU 实例，请前往 GPU 实例页选择并激活一个。",
+  "openInstances": "前往 GPU 实例",
+  "iframeFallback": "ComfyUI 加载失败，请检查实例与隧道状态。",
+  "openExternal": "新窗口打开"
+}

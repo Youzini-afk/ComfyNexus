@@ -1,0 +1,46 @@
+# Binaries
+/comfynexus
+/dist/
+/build/
+*.exe
+*.test
+*.out
+
+# Go
+vendor/
+.cache/
+
+# Node
+node_modules/
+web/dist/
+web/.vite/
+*.log
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Env & secrets
+.env
+.env.local
+.env.*.local
+/data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+secrets/
+*.pem
+*.key
+!**/testdata/**/*.key
+
+# Coverage
+coverage.out
+coverage.html

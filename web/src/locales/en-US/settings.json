@@ -1,0 +1,7 @@
+{
+  "title": "Settings",
+  "language": "Interface language",
+  "appearance": "Appearance",
+  "civitaiKey": "Civitai API key",
+  "saveLocale": "Save language"
+}

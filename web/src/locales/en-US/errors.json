@@ -1,0 +1,17 @@
+{
+  "INTERNAL": "Server error",
+  "BAD_REQUEST": "Bad request",
+  "UNAUTHORIZED": "Please sign in first",
+  "FORBIDDEN": "Forbidden",
+  "NOT_FOUND": "Not found",
+  "CONFLICT": "Already exists",
+  "RATE_LIMITED": "Rate limited; try again later",
+  "AUTH_INVALID": "Invalid username or password",
+  "AUTH_LOCKED": "Too many failed attempts; try again later",
+  "AUTH_TOTP_INVALID": "Invalid TOTP code",
+  "AUTH_SETUP_COMPLETE": "Setup already completed",
+  "AUTH_SETUP_REQUIRED": "Setup not completed",
+  "INSTANCE_NO_ACTIVE": "No active GPU instance",
+  "INSTANCE_UNREACHABLE": "Cannot reach GPU instance",
+  "INSTANCE_BAD_KEY": "Cannot decrypt private key (master key changed?)"
+}

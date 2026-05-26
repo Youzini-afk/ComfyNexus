@@ -1,0 +1,30 @@
+{
+  "title": "GPU instances",
+  "subtitle": "Manage ComfyUI hosts you tunnel to over SSH",
+  "empty": "No GPU instances configured yet",
+  "addInstance": "Add instance",
+  "editInstance": "Edit instance",
+  "fields": {
+    "name": "Name",
+    "sshHost": "SSH host",
+    "sshPort": "SSH port",
+    "sshUser": "SSH user",
+    "sshKeySource": "Private key source",
+    "sshKeyPEM": "Private key (PEM)",
+    "sshKeyPath": "Private key file path",
+    "sshPassphrase": "Key passphrase (optional)",
+    "hostFingerprint": "Host fingerprint (optional)",
+    "comfyHost": "ComfyUI bind",
+    "comfyPort": "ComfyUI port",
+    "comfyRoot": "ComfyUI root",
+    "comfyStartCmd": "Start command",
+    "notes": "Notes"
+  },
+  "keySource": {
+    "inline": "Paste/upload PEM",
+    "mounted": "Mounted file on server"
+  },
+  "uploadKey": "Choose key file",
+  "testOk": "Connection succeeded",
+  "testFailed": "Connection failed: {{err}}"
+}

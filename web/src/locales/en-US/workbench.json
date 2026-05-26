@@ -1,0 +1,7 @@
+{
+  "title": "Workbench",
+  "noActive": "No active GPU instance. Pick one from the instances page first.",
+  "openInstances": "Go to instances",
+  "iframeFallback": "ComfyUI failed to load; check the active instance and tunnel.",
+  "openExternal": "Open in new tab"
+}

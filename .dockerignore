@@ -1,0 +1,16 @@
+.git
+.github
+.idea
+.vscode
+node_modules
+web/node_modules
+web/dist
+data
+*.db
+*.db-journal
+*.log
+.env
+.env.*
+README*.md
+docs/
+coverage.out
