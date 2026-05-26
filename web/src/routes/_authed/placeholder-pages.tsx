@@ -1,19 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { HardHat, Cpu, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
+import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 
-export function SystemPage() {
-  const { t } = useTranslation('system');
-  return (
-    <div className="space-y-4 p-6">
-      <div className="flex items-center gap-2">
-        <Cpu size={20} className="text-brand" />
-        <h1 className="text-xl font-semibold">{t('title')}</h1>
-      </div>
-      <p className="text-sm text-fg-muted">{t('subtitle')}</p>
-      <PlaceholderCard icon={<HardHat size={28} />} label={t('comingSoon')} />
-    </div>
-  );
-}
+export { SystemPage } from './SystemPage';
 
 export function SettingsPage() {
   const { t } = useTranslation('settings');
@@ -31,8 +20,6 @@ export function SettingsPage() {
     </div>
   );
 }
-
-import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 
 function PlaceholderCard({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
