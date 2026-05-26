@@ -1,5 +1,45 @@
 {
   "title": "模型库",
-  "subtitle": "管理远端 models/ 下的所有模型",
-  "comingSoon": "敬请期待"
+  "subtitle": "浏览、扫描并管理远端 models/ 下的所有模型",
+  "scan": "扫描模型",
+  "scanning": "扫描中…",
+  "syncCivitai": "同步 Civitai",
+  "syncing": "同步中…",
+  "searchPlaceholder": "按文件名或标签搜索…",
+  "typeFilter": "类型",
+  "allTypes": "全部类型",
+  "diskUsage": "磁盘占用",
+  "totalModels": "模型总数",
+  "noActive": "当前没有活跃的 GPU 实例。请在「GPU 实例」页面激活一个实例。",
+  "empty": "暂无模型。尝试扫描或更换筛选条件。",
+  "grid": "网格",
+  "list": "列表",
+  "select": "选择",
+  "selected": "已选 {{count}} 个",
+  "deleteConfirm": "确认删除模型「{{name}}」？此操作不可撤销。",
+  "detail": {
+    "title": "模型详情",
+    "path": "路径",
+    "sha256": "SHA256",
+    "baseModel": "基础模型",
+    "triggerWords": "触发词",
+    "tags": "标签",
+    "size": "大小",
+    "scannedAt": "扫描时间",
+    "syncedAt": "Civitai 同步时间",
+    "civitaiId": "Civitai ID",
+    "copy": "复制",
+    "copied": "已复制",
+    "close": "关闭",
+    "delete": "删除"
+  },
+  "type": {
+    "checkpoint": "Checkpoint",
+    "lora": "LoRA",
+    "embedding": "Embedding",
+    "controlnet": "ControlNet",
+    "upscale": "Upscaler",
+    "vae": "VAE",
+    "other": "其他"
+  }
 }

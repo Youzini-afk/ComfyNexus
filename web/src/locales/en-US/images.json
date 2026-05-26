@@ -1,5 +1,38 @@
 {
   "title": "Images",
   "subtitle": "ComfyUI output gallery with workflow replay",
-  "comingSoon": "Coming soon"
+  "scan": "Scan images",
+  "scanning": "Scanning…",
+  "searchPlaceholder": "Search by prompt…",
+  "favoritedOnly": "Favorites only",
+  "all": "All images",
+  "favorites": "Favorites",
+  "empty": "No images found. Try scanning or changing filters.",
+  "noActive": "No active GPU instance. Activate one in Instances to browse images.",
+  "batch": {
+    "select": "Select",
+    "cancel": "Cancel selection",
+    "selected": "{{count}} selected",
+    "zip": "Download ZIP",
+    "delete": "Delete selected",
+    "deleteConfirm": "Delete {{count}} images? This cannot be undone."
+  },
+  "detail": {
+    "title": "Image details",
+    "preview": "Preview",
+    "prompt": "Prompt",
+    "negativePrompt": "Negative prompt",
+    "workflow": "Workflow",
+    "dimensions": "Dimensions",
+    "size": "Size",
+    "createdAt": "Created",
+    "path": "Path",
+    "copyPrompt": "Copy prompt",
+    "copied": "Copied",
+    "favorite": "Favorite",
+    "unfavorite": "Unfavorite",
+    "close": "Close",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this image? This cannot be undone."
+  }
 }

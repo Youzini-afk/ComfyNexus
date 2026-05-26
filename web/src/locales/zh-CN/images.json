@@ -1,5 +1,38 @@
 {
   "title": "图片库",
   "subtitle": "ComfyUI 输出画廊与工作流回放",
-  "comingSoon": "敬请期待"
+  "scan": "扫描图片",
+  "scanning": "扫描中…",
+  "searchPlaceholder": "按提示词搜索…",
+  "favoritedOnly": "仅显示收藏",
+  "all": "全部图片",
+  "favorites": "收藏",
+  "empty": "暂无图片。尝试扫描或更换筛选条件。",
+  "noActive": "当前没有活跃的 GPU 实例。请在「GPU 实例」页面激活一个实例。",
+  "batch": {
+    "select": "选择",
+    "cancel": "取消选择",
+    "selected": "已选 {{count}} 张",
+    "zip": "下载 ZIP",
+    "delete": "删除选中",
+    "deleteConfirm": "确认删除 {{count}} 张图片？此操作不可撤销。"
+  },
+  "detail": {
+    "title": "图片详情",
+    "preview": "预览",
+    "prompt": "提示词",
+    "negativePrompt": "反向提示词",
+    "workflow": "工作流",
+    "dimensions": "尺寸",
+    "size": "大小",
+    "createdAt": "生成时间",
+    "path": "路径",
+    "copyPrompt": "复制提示词",
+    "copied": "已复制",
+    "favorite": "收藏",
+    "unfavorite": "取消收藏",
+    "close": "关闭",
+    "delete": "删除",
+    "deleteConfirm": "确认删除此图片？此操作不可撤销。"
+  }
 }

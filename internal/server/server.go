@@ -103,6 +103,21 @@ func (s *Server) routes() http.Handler {
 		r.Get("/downloads", s.listDownloads)
 		r.Get("/downloads/{id}", s.getDownload)
 		r.Delete("/downloads/{id}", s.cancelDownload)
+
+		r.Post("/models/scan", s.scanModels)
+		r.Get("/models/disk-usage", s.modelDiskUsage)
+		r.Get("/models", s.listModels)
+		r.Get("/models/{id}", s.getModel)
+		r.Post("/models/{id}/sync-civitai", s.syncModelCivitai)
+		r.Delete("/models/{id}", s.deleteModel)
+
+		r.Post("/images/scan", s.scanImages)
+		r.Post("/images/batch-zip", s.zipImages)
+		r.Get("/images", s.listImages)
+		r.Get("/images/{id}", s.getImage)
+		r.Get("/images/{id}/workflow", s.getImageWorkflow)
+		r.Post("/images/{id}/favorite", s.favoriteImage)
+		r.Delete("/images/{id}", s.deleteImage)
 	})
 
 	// ComfyUI reverse proxy. The session cookie carries auth so an iframe

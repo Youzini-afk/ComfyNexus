@@ -5,14 +5,11 @@ import { SetupPage } from './setup';
 import { AppLayout } from './_authed';
 import { Workbench } from './_authed/workbench';
 import { InstancesPage } from './_authed/instances';
-import {
-  ModelsPage,
-  ImagesPage,
-  SystemPage,
-  SettingsPage,
-} from './_authed/placeholder-pages';
+import { SystemPage, SettingsPage } from './_authed/placeholder-pages';
 import FilesPage from './_authed/FilesPage';
 import DownloadsPage from './_authed/DownloadsPage';
+import ModelsPage from './_authed/ModelsPage';
+import ImagesPage from './_authed/ImagesPage';
 
 export function AppRoutes() {
   return (

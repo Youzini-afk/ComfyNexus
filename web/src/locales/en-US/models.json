@@ -1,5 +1,45 @@
 {
   "title": "Models",
-  "subtitle": "Browse and manage models under the remote models/ tree",
-  "comingSoon": "Coming soon"
+  "subtitle": "Browse, scan and manage models in the remote models/ tree",
+  "scan": "Scan models",
+  "scanning": "Scanning…",
+  "syncCivitai": "Sync Civitai",
+  "syncing": "Syncing…",
+  "searchPlaceholder": "Search by filename or tag…",
+  "typeFilter": "Type",
+  "allTypes": "All types",
+  "diskUsage": "Disk usage",
+  "totalModels": "Total models",
+  "noActive": "No active GPU instance. Activate one in Instances to browse models.",
+  "empty": "No models found. Try scanning or changing filters.",
+  "grid": "Grid",
+  "list": "List",
+  "select": "Select",
+  "selected": "{{count}} selected",
+  "deleteConfirm": "Delete model \"{{name}}\"? This cannot be undone.",
+  "detail": {
+    "title": "Model details",
+    "path": "Path",
+    "sha256": "SHA256",
+    "baseModel": "Base model",
+    "triggerWords": "Trigger words",
+    "tags": "Tags",
+    "size": "Size",
+    "scannedAt": "Scanned",
+    "syncedAt": "Civitai synced",
+    "civitaiId": "Civitai ID",
+    "copy": "Copy",
+    "copied": "Copied",
+    "close": "Close",
+    "delete": "Delete"
+  },
+  "type": {
+    "checkpoint": "Checkpoint",
+    "lora": "LoRA",
+    "embedding": "Embedding",
+    "controlnet": "ControlNet",
+    "upscale": "Upscaler",
+    "vae": "VAE",
+    "other": "Other"
+  }
 }
