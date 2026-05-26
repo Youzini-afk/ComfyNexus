@@ -1,0 +1,36 @@
+{
+  "title": "Downloads",
+  "subtitle": "Remote download tasks running on the server",
+  "empty": "No active or recent tasks.",
+  "columns": {
+    "name": "Name / URL",
+    "destPath": "Destination",
+    "status": "Status",
+    "progress": "Progress",
+    "size": "Size",
+    "speed": "Speed",
+    "actions": "Actions"
+  },
+  "status": {
+    "pending": "Pending",
+    "running": "Running",
+    "paused": "Paused",
+    "completed": "Completed",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "remove": "Remove",
+    "refresh": "Refresh"
+  },
+  "toast": {
+    "cancelOk": "Task cancelled",
+    "cancelFailed": "Failed to cancel",
+    "retryOk": "Retry sent",
+    "retryFailed": "Failed to retry",
+    "removeOk": "Removed",
+    "removeFailed": "Failed to remove"
+  }
+}

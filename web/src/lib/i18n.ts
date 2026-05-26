@@ -12,6 +12,7 @@ import zhImages from '@/locales/zh-CN/images.json';
 import zhSystem from '@/locales/zh-CN/system.json';
 import zhErrors from '@/locales/zh-CN/errors.json';
 import zhSettings from '@/locales/zh-CN/settings.json';
+import zhDownloads from '@/locales/zh-CN/downloads.json';
 
 import enCommon from '@/locales/en-US/common.json';
 import enAuth from '@/locales/en-US/auth.json';
@@ -23,6 +24,7 @@ import enImages from '@/locales/en-US/images.json';
 import enSystem from '@/locales/en-US/system.json';
 import enErrors from '@/locales/en-US/errors.json';
 import enSettings from '@/locales/en-US/settings.json';
+import enDownloads from '@/locales/en-US/downloads.json';
 
 export const supportedLocales = ['zh-CN', 'en-US'] as const;
 export type Locale = (typeof supportedLocales)[number];
@@ -48,6 +50,7 @@ void i18n
       'system',
       'errors',
       'settings',
+      'downloads',
     ],
     resources: {
       'zh-CN': {
@@ -61,6 +64,7 @@ void i18n
         system: zhSystem,
         errors: zhErrors,
         settings: zhSettings,
+        downloads: zhDownloads,
       },
       'en-US': {
         common: enCommon,
@@ -73,6 +77,7 @@ void i18n
         system: enSystem,
         errors: enErrors,
         settings: enSettings,
+        downloads: enDownloads,
       },
     },
     interpolation: { escapeValue: false },

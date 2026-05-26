@@ -1,5 +1,54 @@
 {
   "title": "Files",
-  "subtitle": "Browse, upload and download ComfyUI files over SFTP",
-  "comingSoon": "Coming soon"
+  "subtitle": "Browse, upload and download ComfyUI files remotely",
+  "breadcrumbRoot": "root",
+  "quickRoots": "Quick paths",
+  "entries": "Entries",
+  "emptyFolder": "This folder is empty.",
+  "type": {
+    "dir": "Folder",
+    "file": "File",
+    "symlink": "Symlink"
+  },
+  "actions": {
+    "newFolder": "New folder",
+    "upload": "Upload",
+    "download": "Download",
+    "rename": "Rename",
+    "delete": "Delete",
+    "open": "Open",
+    "cancelUpload": "Cancel",
+    "remotePull": "Remote download"
+  },
+  "dialogs": {
+    "newFolderTitle": "New folder",
+    "newFolderPlaceholder": "Folder name",
+    "renameTitle": "Rename",
+    "renamePlaceholder": "New name",
+    "deleteConfirm": "Delete \"{{name}}\" permanently?",
+    "deleteConfirmFolder": "Delete folder \"{{name}}\" and its contents permanently?",
+    "remotePullTitle": "Remote download",
+    "remotePullDesc": "Best for huge model files: download directly on the server via URL.",
+    "remotePullUrl": "File URL",
+    "remotePullDest": "Destination path",
+    "remotePullSubmit": "Add task"
+  },
+  "upload": {
+    "dropzone": "Drag files here or click to select",
+    "targetDir": "Target directory",
+    "progress": "{{percent}}% — {{loaded}} / {{total}}",
+    "error": "Upload failed: {{msg}}",
+    "done": "Done",
+    "cancel": "Cancel"
+  },
+  "toast": {
+    "folderCreated": "Folder created",
+    "folderFailed": "Failed to create folder",
+    "renameOk": "Renamed",
+    "renameFailed": "Rename failed",
+    "deleteOk": "Deleted",
+    "deleteFailed": "Delete failed",
+    "pullQueued": "Download task added",
+    "pullFailed": "Failed to add task"
+  }
 }

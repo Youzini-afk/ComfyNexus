@@ -51,3 +51,27 @@ export const post = <T,>(p: string, body?: unknown) =>
 export const put = <T,>(p: string, body?: unknown) =>
   api<T>(p, { method: 'PUT', body: body ? JSON.stringify(body) : undefined });
 export const del = <T,>(p: string) => api<T>(p, { method: 'DELETE' });
+
+// Binary upload helper (does NOT JSON-stringify or set Content-Type).
+export async function putBinary(path: string, body: ArrayBuffer | Blob, signal?: AbortSignal): Promise<void> {
+  const res = await fetch(path, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    body,
+    signal,
+  });
+  if (!res.ok) {
+    const ct = res.headers.get('content-type') ?? '';
+    let code = 'INTERNAL';
+    let message = res.statusText;
+    if (ct.includes('application/json')) {
+      const bodyJson = await res.json().catch(() => null);
+      if (bodyJson?.error) {
+        code = bodyJson.error.code ?? code;
+        message = bodyJson.error.message ?? message;
+      }
+    }
+    throw new ApiError(code, res.status, message);
+  }
+}

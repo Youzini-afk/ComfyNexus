@@ -1,5 +1,54 @@
 {
   "title": "文件管理",
-  "subtitle": "通过 SFTP 浏览、上传与下载 ComfyUI 工作目录",
-  "comingSoon": "敬请期待"
+  "subtitle": "远程浏览、上传与下载 ComfyUI 文件",
+  "breadcrumbRoot": "根目录",
+  "quickRoots": "快捷路径",
+  "entries": "条目",
+  "emptyFolder": "该文件夹为空。",
+  "type": {
+    "dir": "文件夹",
+    "file": "文件",
+    "symlink": "链接"
+  },
+  "actions": {
+    "newFolder": "新建文件夹",
+    "upload": "上传",
+    "download": "下载",
+    "rename": "重命名",
+    "delete": "删除",
+    "open": "打开",
+    "cancelUpload": "取消上传",
+    "remotePull": "远程下载"
+  },
+  "dialogs": {
+    "newFolderTitle": "新建文件夹",
+    "newFolderPlaceholder": "文件夹名称",
+    "renameTitle": "重命名",
+    "renamePlaceholder": "新名称",
+    "deleteConfirm": "永久删除 \"{{name}}\"？",
+    "deleteConfirmFolder": "永久删除文件夹 \"{{name}}\" 及其内容？",
+    "remotePullTitle": "远程下载",
+    "remotePullDesc": "适合下载超大模型文件：直接通过 URL 在服务器端下载。",
+    "remotePullUrl": "文件 URL",
+    "remotePullDest": "目标路径",
+    "remotePullSubmit": "添加任务"
+  },
+  "upload": {
+    "dropzone": "拖拽文件到此处，或点击选择文件",
+    "targetDir": "目标目录",
+    "progress": "{{percent}}% — {{loaded}} / {{total}}",
+    "error": "上传失败：{{msg}}",
+    "done": "完成",
+    "cancel": "取消"
+  },
+  "toast": {
+    "folderCreated": "文件夹已创建",
+    "folderFailed": "创建文件夹失败",
+    "renameOk": "重命名成功",
+    "renameFailed": "重命名失败",
+    "deleteOk": "已删除",
+    "deleteFailed": "删除失败",
+    "pullQueued": "下载任务已添加",
+    "pullFailed": "添加下载任务失败"
+  }
 }

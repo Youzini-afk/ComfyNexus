@@ -1,0 +1,36 @@
+{
+  "title": "下载任务",
+  "subtitle": "在服务器端执行的远程下载任务",
+  "empty": "暂无活跃或近期任务。",
+  "columns": {
+    "name": "名称 / URL",
+    "destPath": "目标路径",
+    "status": "状态",
+    "progress": "进度",
+    "size": "大小",
+    "speed": "速度",
+    "actions": "操作"
+  },
+  "status": {
+    "pending": "等待中",
+    "running": "进行中",
+    "paused": "已暂停",
+    "completed": "已完成",
+    "failed": "失败",
+    "cancelled": "已取消"
+  },
+  "actions": {
+    "cancel": "取消",
+    "retry": "重试",
+    "remove": "移除",
+    "refresh": "刷新"
+  },
+  "toast": {
+    "cancelOk": "任务已取消",
+    "cancelFailed": "取消失败",
+    "retryOk": "已发送重试",
+    "retryFailed": "重试失败",
+    "removeOk": "已移除",
+    "removeFailed": "移除失败"
+  }
+}

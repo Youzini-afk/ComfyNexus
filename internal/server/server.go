@@ -5,7 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -88,6 +87,22 @@ func (s *Server) routes() http.Handler {
 		r.Post("/instances/{id}/test", s.testInstance)
 		r.Post("/instances/{id}/activate", s.activateInstance)
 		r.Get("/instances/active", s.getActiveInstance)
+
+		r.Get("/files", s.listFiles)
+		r.Post("/files/mkdir", s.mkdirFile)
+		r.Post("/files/rename", s.renameFile)
+		r.Delete("/files", s.deleteFile)
+		r.Get("/files/download", s.downloadFile)
+
+		r.Post("/uploads", s.createUpload)
+		r.Put("/uploads/{id}/chunks/{n}", s.putUploadChunk)
+		r.Post("/uploads/{id}/complete", s.completeUpload)
+		r.Get("/uploads/{id}", s.getUpload)
+
+		r.Post("/downloads", s.createDownload)
+		r.Get("/downloads", s.listDownloads)
+		r.Get("/downloads/{id}", s.getDownload)
+		r.Delete("/downloads/{id}", s.cancelDownload)
 	})
 
 	// ComfyUI reverse proxy. The session cookie carries auth so an iframe
@@ -199,53 +214,9 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 
 // activeInstanceProvider satisfies proxy.InstanceProvider.
 func (s *Server) activeInstanceProvider(ctx context.Context) (sshmgr.Target, string, int, error) {
-	row := s.DB.QueryRowContext(ctx, `
-		SELECT i.id, i.name, i.ssh_host, i.ssh_port, i.ssh_user,
-		       i.ssh_key_source, i.ssh_key_blob, i.ssh_key_path, i.ssh_passphrase_blob,
-		       i.ssh_host_fingerprint, i.comfy_host, i.comfy_port
-		FROM gpu_instances i
-		JOIN settings st ON st.key='active_instance_id' AND st.value = CAST(i.id AS TEXT)
-		LIMIT 1`)
-	var (
-		id          int64
-		name        string
-		host, user  string
-		port        int
-		keySource   string
-		keyBlob     []byte
-		keyPath     sql.NullString
-		passBlob    []byte
-		fingerprint sql.NullString
-		comfyHost   string
-		comfyPort   int
-	)
-	if err := row.Scan(&id, &name, &host, &port, &user, &keySource, &keyBlob, &keyPath, &passBlob, &fingerprint, &comfyHost, &comfyPort); err != nil {
-		if err == sql.ErrNoRows {
-			return sshmgr.Target{}, "", 0, errs.New(errs.CodeInstanceNoActive, http.StatusBadGateway, "no active GPU instance")
-		}
+	active, err := s.loadActiveInstance(ctx)
+	if err != nil {
 		return sshmgr.Target{}, "", 0, err
 	}
-	tgt := sshmgr.Target{ID: id, Name: name, Host: host, Port: port, User: user}
-	if isInlineKeySource(keySource) {
-		pem, err := cnxcrypto.Open(s.KEK, keyBlob)
-		if err != nil {
-			return sshmgr.Target{}, "", 0, fmt.Errorf("decrypt key: %w", err)
-		}
-		tgt.PrivateKeyPEM = pem
-	} else {
-		if keyPath.Valid {
-			tgt.KeyPath = keyPath.String
-		}
-	}
-	if len(passBlob) > 0 {
-		pass, err := cnxcrypto.Open(s.KEK, passBlob)
-		if err != nil {
-			return sshmgr.Target{}, "", 0, fmt.Errorf("decrypt passphrase: %w", err)
-		}
-		tgt.Passphrase = pass
-	}
-	if fingerprint.Valid {
-		tgt.HostFingerprint = fingerprint.String
-	}
-	return tgt, comfyHost, comfyPort, nil
+	return active.Target, active.ComfyHost, active.ComfyPort, nil
 }

@@ -6,13 +6,13 @@ import { AppLayout } from './_authed';
 import { Workbench } from './_authed/workbench';
 import { InstancesPage } from './_authed/instances';
 import {
-  FilesPage,
   ModelsPage,
   ImagesPage,
-  DownloadsPage,
   SystemPage,
   SettingsPage,
 } from './_authed/placeholder-pages';
+import FilesPage from './_authed/FilesPage';
+import DownloadsPage from './_authed/DownloadsPage';
 
 export function AppRoutes() {
   return (

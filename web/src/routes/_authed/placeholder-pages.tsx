@@ -1,19 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { HardHat, FolderTree, FileText, Box, Image, Cpu, Download, Settings, Layers } from 'lucide-react';
-
-export function FilesPage() {
-  const { t } = useTranslation('files');
-  return (
-    <div className="space-y-4 p-6">
-      <div className="flex items-center gap-2">
-        <FolderTree size={20} className="text-brand" />
-        <h1 className="text-xl font-semibold">{t('title')}</h1>
-      </div>
-      <p className="text-sm text-fg-muted">{t('subtitle')}</p>
-      <PlaceholderCard icon={<FileText size={28} />} label={t('comingSoon')} />
-    </div>
-  );
-}
+import { HardHat, Box, Image, Cpu, Settings, Layers } from 'lucide-react';
 
 export function ModelsPage() {
   const { t } = useTranslation('models');
@@ -39,19 +25,6 @@ export function ImagesPage() {
       </div>
       <p className="text-sm text-fg-muted">{t('subtitle')}</p>
       <PlaceholderCard icon={<Image size={28} />} label={t('comingSoon')} />
-    </div>
-  );
-}
-
-export function DownloadsPage() {
-  const { t } = useTranslation(['files', 'common']);
-  return (
-    <div className="space-y-4 p-6">
-      <div className="flex items-center gap-2">
-        <Download size={20} className="text-brand" />
-        <h1 className="text-xl font-semibold">{t('common:nav.downloads')}</h1>
-      </div>
-      <PlaceholderCard icon={<Download size={28} />} label={t('files:comingSoon')} />
     </div>
   );
 }
