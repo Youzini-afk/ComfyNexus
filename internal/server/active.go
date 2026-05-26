@@ -68,5 +68,6 @@ func (s *Server) loadActiveInstance(ctx context.Context) (activeInstance, error)
 	if fingerprint.Valid {
 		tgt.HostFingerprint = fingerprint.String
 	}
+	tgt.InsecureSkipHostKeyCheck = s.Cfg.InsecureSkipHostKeyCheck
 	return activeInstance{Target: tgt, ComfyHost: comfyHost, ComfyPort: comfyPort, ComfyRoot: comfyRoot.String, ComfyStartCmd: comfyStartCmd.String}, nil
 }

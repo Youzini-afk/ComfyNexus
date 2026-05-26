@@ -16,13 +16,16 @@
     "activate": "Make active",
     "deactivate": "Deactivate",
     "logout": "Sign out",
+    "menu": "Open menu",
     "search": "Search",
     "more": "More",
     "copy": "Copy",
     "copied": "Copied",
     "open": "Open",
     "next": "Next",
-    "previous": "Back"
+    "previous": "Back",
+    "retry": "Retry",
+    "dragDropHint": "Drag files here to upload"
   },
   "nav": {
     "workbench": "Workbench",

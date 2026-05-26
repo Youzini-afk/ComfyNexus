@@ -57,7 +57,7 @@ func (s *Server) createDownload(w http.ResponseWriter, r *http.Request) {
 		errs.Write(w, err)
 		return
 	}
-	dest, err := cleanRequestPath(req.DestPath)
+	dest, err := cleanRequestPath(req.DestPath, true)
 	if err != nil {
 		errs.Write(w, err)
 		return
@@ -88,7 +88,7 @@ func (s *Server) createDownload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) listDownloads(w http.ResponseWriter, r *http.Request) {
-	rows, err := s.DB.QueryContext(r.Context(), `SELECT id, status, payload_json, progress, total, COALESCE(message,''), COALESCE(error,''), created_at, COALESCE(started_at,''), COALESCE(finished_at,'') FROM jobs WHERE type='download' ORDER BY id DESC`)
+	rows, err := s.DB.QueryContext(r.Context(), `SELECT id, status, payload_json, progress, total, COALESCE(instance_id,0), COALESCE(message,''), COALESCE(error,''), created_at, COALESCE(started_at,''), COALESCE(finished_at,'') FROM jobs WHERE type='download' ORDER BY id DESC`)
 	if err != nil {
 		errs.Write(w, err)
 		return
@@ -131,9 +131,10 @@ func (s *Server) cancelDownload(w http.ResponseWriter, r *http.Request) {
 		errs.Write(w, err)
 		return
 	}
-	active, err := s.loadActiveInstance(r.Context())
-	if err == nil {
-		_ = s.killRemoteDownload(r.Context(), active.Target, j.Payload.PIDPath)
+	if j.InstanceID > 0 {
+		if target, err := s.loadTarget(r.Context(), j.InstanceID); err == nil {
+			_ = s.killRemoteDownload(r.Context(), target, j.Payload.PIDPath)
+		}
 	}
 	_, err = s.DB.ExecContext(r.Context(), `UPDATE jobs SET status='canceled', message='canceled', finished_at=CURRENT_TIMESTAMP WHERE id=? AND status IN ('pending','running')`, id)
 	if err != nil {
@@ -145,6 +146,7 @@ func (s *Server) cancelDownload(w http.ResponseWriter, r *http.Request) {
 
 type downloadJob struct {
 	ID         int64
+	InstanceID int64
 	Status     string
 	Payload    downloadPayload
 	Progress   int64
@@ -167,7 +169,7 @@ type downloadScanner interface {
 func scanDownloadJob(scanner downloadScanner) (downloadJob, error) {
 	var j downloadJob
 	var payloadJSON string
-	if err := scanner.Scan(&j.ID, &j.Status, &payloadJSON, &j.Progress, &j.Total, &j.Message, &j.Error, &j.CreatedAt, &j.StartedAt, &j.FinishedAt); err != nil {
+	if err := scanner.Scan(&j.ID, &j.Status, &payloadJSON, &j.Progress, &j.Total, &j.InstanceID, &j.Message, &j.Error, &j.CreatedAt, &j.StartedAt, &j.FinishedAt); err != nil {
 		return downloadJob{}, err
 	}
 	if err := json.Unmarshal([]byte(payloadJSON), &j.Payload); err != nil {
@@ -177,7 +179,7 @@ func scanDownloadJob(scanner downloadScanner) (downloadJob, error) {
 }
 
 func (s *Server) loadDownloadJob(ctx context.Context, id int64) (downloadJob, error) {
-	row := s.DB.QueryRowContext(ctx, `SELECT id, status, payload_json, progress, total, COALESCE(message,''), COALESCE(error,''), created_at, COALESCE(started_at,''), COALESCE(finished_at,'') FROM jobs WHERE id=? AND type='download'`, id)
+	row := s.DB.QueryRowContext(ctx, `SELECT id, status, payload_json, progress, total, COALESCE(instance_id,0), COALESCE(message,''), COALESCE(error,''), created_at, COALESCE(started_at,''), COALESCE(finished_at,'') FROM jobs WHERE id=? AND type='download'`, id)
 	j, err := scanDownloadJob(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

@@ -37,20 +37,40 @@ type Config struct {
 	// CookieSecure forces the Secure flag on the session cookie. Defaults to
 	// true in production (TrustProxy=true). Allow override for local dev.
 	CookieSecure bool
+	// SetupToken, when set, must be supplied via X-Setup-Token or setup JSON body.
+	SetupToken string
+	// InsecureSkipHostKeyCheck restores legacy SSH host-key trust behavior.
+	InsecureSkipHostKeyCheck bool
+	// MaxUploadChunkBytes caps a single upload chunk body.
+	MaxUploadChunkBytes int64
 }
+
+const (
+	defaultUploadChunkBytes = 50 * 1024 * 1024
+	maxUploadChunkBytes     = 100 * 1024 * 1024
+)
 
 func Load() (*Config, error) {
 	c := &Config{
-		Bind:           getenv("COMFYNEXUS_BIND", getenv("PORT", "8080")),
-		DataDir:        getenv("COMFYNEXUS_DATA_DIR", "./data"),
-		MasterKey:      os.Getenv("COMFYNEXUS_MASTER_KEY"),
-		LogLevel:       strings.ToLower(getenv("COMFYNEXUS_LOG_LEVEL", "info")),
-		TrustProxy:     getenvBool("COMFYNEXUS_TRUST_PROXY", true),
-		CivitaiAPIKey:  os.Getenv("CIVITAI_API_KEY"),
-		HFToken:        os.Getenv("HF_TOKEN"),
-		SessionTTLDays: getenvInt("COMFYNEXUS_SESSION_TTL_DAYS", 30),
+		Bind:                     getenv("COMFYNEXUS_BIND", getenv("PORT", "8080")),
+		DataDir:                  getenv("COMFYNEXUS_DATA_DIR", "./data"),
+		MasterKey:                os.Getenv("COMFYNEXUS_MASTER_KEY"),
+		LogLevel:                 strings.ToLower(getenv("COMFYNEXUS_LOG_LEVEL", "info")),
+		TrustProxy:               getenvBool("COMFYNEXUS_TRUST_PROXY", true),
+		CivitaiAPIKey:            os.Getenv("CIVITAI_API_KEY"),
+		HFToken:                  os.Getenv("HF_TOKEN"),
+		SessionTTLDays:           getenvInt("COMFYNEXUS_SESSION_TTL_DAYS", 30),
+		SetupToken:               os.Getenv("COMFYNEXUS_SETUP_TOKEN"),
+		InsecureSkipHostKeyCheck: getenvBool("COMFYNEXUS_INSECURE_SKIP_HOST_KEY_CHECK", false),
+		MaxUploadChunkBytes:      getenvInt64("COMFYNEXUS_UPLOAD_CHUNK_MAX_BYTES", defaultUploadChunkBytes),
 	}
 	c.CookieSecure = getenvBool("COMFYNEXUS_COOKIE_SECURE", c.TrustProxy)
+	if c.MaxUploadChunkBytes <= 0 {
+		c.MaxUploadChunkBytes = defaultUploadChunkBytes
+	}
+	if c.MaxUploadChunkBytes > maxUploadChunkBytes {
+		c.MaxUploadChunkBytes = maxUploadChunkBytes
+	}
 
 	// Allow PORT to be a bare number or a colon-prefixed/full bind addr.
 	if !strings.Contains(c.Bind, ":") {
@@ -111,6 +131,18 @@ func getenvInt(k string, def int) int {
 		return def
 	}
 	n, err := strconv.Atoi(v)
+	if err != nil {
+		return def
+	}
+	return n
+}
+
+func getenvInt64(k string, def int64) int64 {
+	v, ok := os.LookupEnv(k)
+	if !ok || v == "" {
+		return def
+	}
+	n, err := strconv.ParseInt(v, 10, 64)
 	if err != nil {
 		return def
 	}

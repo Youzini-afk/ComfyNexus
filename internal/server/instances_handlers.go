@@ -384,6 +384,7 @@ func (s *Server) loadTarget(ctx context.Context, id int64) (sshmgr.Target, error
 	if fingerprint.Valid {
 		tgt.HostFingerprint = fingerprint.String
 	}
+	tgt.InsecureSkipHostKeyCheck = s.Cfg.InsecureSkipHostKeyCheck
 	return tgt, nil
 }
 

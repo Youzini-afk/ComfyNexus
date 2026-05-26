@@ -1,10 +1,12 @@
 package server
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/Youzini-afk/ComfyNexus/internal/errs"
 	"github.com/Youzini-afk/ComfyNexus/internal/sftpx"
@@ -36,10 +38,26 @@ func (s *Server) sftpForActive(r *http.Request) (*sftpxClient, error) {
 	return &sftpxClient{Client: c}, nil
 }
 
+func (s *Server) sftpForInstance(ctx context.Context, instanceID int64) (*sftpxClient, error) {
+	tgt, err := s.loadTarget(ctx, instanceID)
+	if err != nil {
+		return nil, err
+	}
+	sshClient, err := s.SSH.Get(ctx, tgt)
+	if err != nil {
+		return nil, errs.New(errs.CodeInstanceUnreach, http.StatusBadGateway, "cannot connect to job instance: "+err.Error())
+	}
+	c, err := sftpx.NewClient(sshClient)
+	if err != nil {
+		return nil, errs.New(errs.CodeInstanceUnreach, http.StatusBadGateway, "cannot open sftp: "+err.Error())
+	}
+	return &sftpxClient{Client: c}, nil
+}
+
 type sftpxClient struct{ *sftp.Client }
 
 func (s *Server) listFiles(w http.ResponseWriter, r *http.Request) {
-	p, err := cleanRequestPath(r.URL.Query().Get("path"))
+	p, err := cleanRequestPath(r.URL.Query().Get("path"), false)
 	if err != nil {
 		errs.Write(w, err)
 		return
@@ -64,7 +82,7 @@ func (s *Server) mkdirFile(w http.ResponseWriter, r *http.Request) {
 		errs.Write(w, err)
 		return
 	}
-	p, err := cleanRequestPath(req.Path)
+	p, err := cleanRequestPath(req.Path, false)
 	if err != nil {
 		errs.Write(w, err)
 		return
@@ -88,12 +106,12 @@ func (s *Server) renameFile(w http.ResponseWriter, r *http.Request) {
 		errs.Write(w, err)
 		return
 	}
-	oldPath, err := cleanRequestPath(req.OldPath)
+	oldPath, err := cleanRequestPath(req.OldPath, true)
 	if err != nil {
 		errs.Write(w, err)
 		return
 	}
-	newPath, err := cleanRequestPath(req.NewPath)
+	newPath, err := cleanRequestPath(req.NewPath, true)
 	if err != nil {
 		errs.Write(w, err)
 		return
@@ -116,7 +134,7 @@ func (s *Server) renameFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteFile(w http.ResponseWriter, r *http.Request) {
-	p, err := cleanRequestPath(r.URL.Query().Get("path"))
+	p, err := cleanRequestPath(r.URL.Query().Get("path"), true)
 	if err != nil {
 		errs.Write(w, err)
 		return
@@ -135,7 +153,7 @@ func (s *Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) downloadFile(w http.ResponseWriter, r *http.Request) {
-	p, err := cleanRequestPath(r.URL.Query().Get("path"))
+	p, err := cleanRequestPath(r.URL.Query().Get("path"), false)
 	if err != nil {
 		errs.Write(w, err)
 		return
@@ -167,12 +185,40 @@ func (s *Server) downloadFile(w http.ResponseWriter, r *http.Request) {
 	_, _ = io.Copy(w, f)
 }
 
-func cleanRequestPath(p string) (string, error) {
+func cleanRequestPath(p string, destructive bool) (string, error) {
 	cleaned, err := sftpx.CleanPath(p)
 	if err != nil {
 		return "", errs.New(errs.CodeBadRequest, http.StatusBadRequest, err.Error())
 	}
+	if destructive && strings.TrimSpace(p) == "" {
+		return "", errs.New(errs.CodeBadRequest, http.StatusBadRequest, "path required")
+	}
+	if err := validateFileManagerPath(cleaned, destructive); err != nil {
+		return "", err
+	}
 	return cleaned, nil
+}
+
+func validateFileManagerPath(p string, destructive bool) error {
+	allowed := []string{"/models", "/input", "/output", "/custom_nodes", "/user"}
+	for _, root := range allowed {
+		if p == root {
+			if destructive {
+				return errs.New(errs.CodeBadRequest, http.StatusBadRequest, "refusing to modify protected top-level directory")
+			}
+			return nil
+		}
+		if strings.HasPrefix(p, root+"/") {
+			return nil
+		}
+	}
+	if p == "/" {
+		if destructive {
+			return errs.New(errs.CodeBadRequest, http.StatusBadRequest, "refusing to modify root directory")
+		}
+		return nil
+	}
+	return errs.New(errs.CodeBadRequest, http.StatusBadRequest, "path must be under /models, /input, /output, /custom_nodes, or /user")
 }
 
 func escapeHeaderFilename(name string) string {

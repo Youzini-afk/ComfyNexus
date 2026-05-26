@@ -1,5 +1,5 @@
 # --- ComfyNexus Makefile ---
-.PHONY: help dev dev-web dev-api build build-web build-api test test-go test-web lint fmt tidy clean docker docker-run gen-key
+.PHONY: help dev dev-web dev-api build build-web build-api test test-go test-web quality lint fmt tidy clean docker docker-run gen-key
 
 GO            ?= go
 NPM           ?= npm
@@ -23,7 +23,7 @@ dev-web: ## Run Vite dev server
 build: build-web build-api ## Build everything (web first, then Go binary with embedded assets)
 
 build-web: ## Build the Vite frontend into web/dist
-	cd $(WEB_DIR) && $(NPM) ci && $(NPM) run build
+	cd $(WEB_DIR) && $(NPM) ci --include=dev && $(NPM) run build
 
 build-api: ## Build the Go binary with embedded web assets
 	mkdir -p $(DIST)
@@ -36,6 +36,8 @@ test-go: ## Run Go tests
 
 test-web: ## Run frontend tests (no-op until vitest is configured)
 	cd $(WEB_DIR) && $(NPM) test --if-present
+
+quality: test-go build-web ## Run backend tests and verify the frontend production build
 
 lint: ## Run linters
 	$(GO) vet $(GO_PKG)

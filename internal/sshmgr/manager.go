@@ -19,15 +19,16 @@ import (
 
 // Target describes how to dial an instance.
 type Target struct {
-	ID              int64
-	Name            string
-	Host            string
-	Port            int
-	User            string
-	PrivateKeyPEM   []byte // either PEM bytes (inline) or empty if KeyPath is set
-	KeyPath         string // mounted file path (when inline is empty)
-	Passphrase      []byte // optional passphrase for encrypted keys
-	HostFingerprint string // optional pinned SHA256 host key fingerprint ("SHA256:...")
+	ID                       int64
+	Name                     string
+	Host                     string
+	Port                     int
+	User                     string
+	PrivateKeyPEM            []byte // either PEM bytes (inline) or empty if KeyPath is set
+	KeyPath                  string // mounted file path (when inline is empty)
+	Passphrase               []byte // optional passphrase for encrypted keys
+	HostFingerprint          string // optional pinned SHA256 host key fingerprint ("SHA256:...")
+	InsecureSkipHostKeyCheck bool   // explicit opt-in for legacy trust-any host behavior
 }
 
 // Manager owns one Conn per instance ID.
@@ -173,7 +174,11 @@ func buildClientConfig(t Target) (*ssh.ClientConfig, error) {
 
 	hostKeyCb := ssh.HostKeyCallback(func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 		if t.HostFingerprint == "" {
-			return nil // TOFU: accept on first connect; recommend pinning later.
+			if t.InsecureSkipHostKeyCheck {
+				return nil
+			}
+			got := "SHA256:" + base64NoPad(sha256.Sum256(key.Marshal()))
+			return fmt.Errorf("ssh host key fingerprint required for %s (server presented %s); set the instance hostFingerprint or explicitly set COMFYNEXUS_INSECURE_SKIP_HOST_KEY_CHECK=true for development only", hostname, got)
 		}
 		got := "SHA256:" + base64NoPad(sha256.Sum256(key.Marshal()))
 		if got != t.HostFingerprint {

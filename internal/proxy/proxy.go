@@ -44,9 +44,14 @@ func New(mgr *sshmgr.Manager, provider InstanceProvider, stripPrefix string) htt
 			}
 			r.Host = "comfyui.local"
 			r.Header.Set("X-Forwarded-Proto", "https")
+			stripSensitiveProxyHeaders(r.Header)
 		},
 		Transport:     &sshTransport{mgr: mgr, provider: provider},
 		FlushInterval: 100 * time.Millisecond,
+		ModifyResponse: func(resp *http.Response) error {
+			resp.Header.Del("Set-Cookie")
+			return nil
+		},
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
 			writeProxyUnavailable(w, r, err)
 		},
@@ -137,8 +142,25 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request, mgr *sshmgr.Manager
 	}
 	upReq.Host = "comfyui.local"
 	upReq.RequestURI = ""
+	stripSensitiveProxyHeaders(upReq.Header)
 	if err := upReq.Write(upstream); err != nil {
 		writeProxyUnavailable(w, r, err)
+		return
+	}
+	upstreamBuf := bufio.NewReader(upstream)
+	upResp, err := http.ReadResponse(upstreamBuf, upReq)
+	if err != nil {
+		writeProxyUnavailable(w, r, err)
+		return
+	}
+	upResp.Header.Del("Set-Cookie")
+	if upResp.StatusCode != http.StatusSwitchingProtocols {
+		copyResponseHeader(w.Header(), upResp.Header)
+		w.WriteHeader(upResp.StatusCode)
+		if upResp.Body != nil {
+			defer upResp.Body.Close()
+			_, _ = io.Copy(w, upResp.Body)
+		}
 		return
 	}
 
@@ -153,9 +175,41 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request, mgr *sshmgr.Manager
 		return
 	}
 	defer clientConn.Close()
+	if err := upResp.Write(clientConn); err != nil {
+		return
+	}
 
 	// Pipe both directions until one side closes.
-	pipe(clientConn, upstream, clientBuf)
+	pipe(clientConn, upstream, clientBuf, upstreamBuf)
+}
+
+func copyResponseHeader(dst, src http.Header) {
+	for k, vv := range src {
+		for _, v := range vv {
+			dst.Add(k, v)
+		}
+	}
+}
+
+func stripSensitiveProxyHeaders(h http.Header) {
+	for _, name := range []string{
+		"Cookie",
+		"Authorization",
+		"Proxy-Authorization",
+		"X-Requested-With",
+		"X-Setup-Token",
+		"ComfyNexus",
+		"X-ComfyNexus",
+		"X-Comfynexus",
+	} {
+		h.Del(name)
+	}
+	for name := range h {
+		lower := strings.ToLower(name)
+		if strings.HasPrefix(lower, "comfynexus") || strings.HasPrefix(lower, "x-comfynexus") {
+			h.Del(name)
+		}
+	}
 }
 
 func writeProxyUnavailable(w http.ResponseWriter, r *http.Request, err error) {
@@ -196,10 +250,13 @@ func htmlEscape(s string) string {
 	return s
 }
 
-func pipe(client net.Conn, upstream net.Conn, clientBuf *bufio.ReadWriter) {
+func pipe(client net.Conn, upstream net.Conn, clientBuf *bufio.ReadWriter, upstreamBuf *bufio.Reader) {
 	done := make(chan struct{}, 2)
 	go func() {
 		// upstream → client (response + frames)
+		if upstreamBuf != nil && upstreamBuf.Buffered() > 0 {
+			_, _ = io.CopyN(client, upstreamBuf, int64(upstreamBuf.Buffered()))
+		}
 		_, _ = io.Copy(client, upstream)
 		done <- struct{}{}
 	}()

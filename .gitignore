@@ -14,6 +14,8 @@ vendor/
 node_modules/
 web/dist/
 web/.vite/
+web/*.tsbuildinfo
+*.tsbuildinfo
 *.log
 npm-debug.log*
 yarn-error.log*

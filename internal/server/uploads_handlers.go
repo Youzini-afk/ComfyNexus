@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/Youzini-afk/ComfyNexus/internal/errs"
 	"github.com/Youzini-afk/ComfyNexus/internal/sftpx"
@@ -51,7 +53,7 @@ func (s *Server) createUpload(w http.ResponseWriter, r *http.Request) {
 		errs.Write(w, err)
 		return
 	}
-	p, err := cleanRequestPath(req.Path)
+	p, err := cleanRequestPath(req.Path, true)
 	if err != nil {
 		errs.Write(w, err)
 		return
@@ -68,6 +70,10 @@ func (s *Server) createUpload(w http.ResponseWriter, r *http.Request) {
 	payload := uploadPayload{Path: p, TempPath: p + ".comfynexus-upload", ChunkSize: req.ChunkSize, NextChunk: 0}
 	if req.ChunkSize < 0 {
 		errs.Write(w, errs.New(errs.CodeBadRequest, http.StatusBadRequest, "chunkSize must be non-negative"))
+		return
+	}
+	if req.ChunkSize > s.Cfg.MaxUploadChunkBytes {
+		errs.Write(w, errs.New(errs.CodeBadRequest, http.StatusBadRequest, fmt.Sprintf("chunkSize exceeds maximum of %d bytes", s.Cfg.MaxUploadChunkBytes)))
 		return
 	}
 	payloadJSON, _ := json.Marshal(payload)
@@ -106,7 +112,12 @@ func (s *Server) putUploadChunk(w http.ResponseWriter, r *http.Request) {
 		errs.Write(w, errs.New(errs.CodeConflict, http.StatusConflict, "chunks must be uploaded sequentially"))
 		return
 	}
-	c, err := s.sftpForActive(r)
+	if r.ContentLength > s.Cfg.MaxUploadChunkBytes {
+		errs.Write(w, errs.New(errs.CodeBadRequest, http.StatusBadRequest, fmt.Sprintf("upload chunk exceeds maximum of %d bytes", s.Cfg.MaxUploadChunkBytes)))
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, s.Cfg.MaxUploadChunkBytes)
+	c, err := s.sftpForInstance(r.Context(), job.InstanceID)
 	if err != nil {
 		errs.Write(w, err)
 		return
@@ -124,6 +135,10 @@ func (s *Server) putUploadChunk(w http.ResponseWriter, r *http.Request) {
 	written, copyErr := io.Copy(f, r.Body)
 	closeErr := f.Close()
 	if copyErr != nil {
+		if strings.Contains(copyErr.Error(), "http: request body too large") {
+			errs.Write(w, errs.New(errs.CodeBadRequest, http.StatusBadRequest, fmt.Sprintf("upload chunk exceeds maximum of %d bytes", s.Cfg.MaxUploadChunkBytes)))
+			return
+		}
 		errs.Write(w, copyErr)
 		return
 	}
@@ -155,7 +170,7 @@ func (s *Server) completeUpload(w http.ResponseWriter, r *http.Request) {
 		errs.Write(w, err)
 		return
 	}
-	c, err := s.sftpForActive(r)
+	c, err := s.sftpForInstance(r.Context(), job.InstanceID)
 	if err != nil {
 		errs.Write(w, err)
 		return
@@ -202,6 +217,7 @@ func (s *Server) getUpload(w http.ResponseWriter, r *http.Request) {
 
 type uploadJob struct {
 	ID         int64
+	InstanceID int64
 	Status     string
 	Payload    uploadPayload
 	Progress   int64
@@ -218,11 +234,11 @@ func (j uploadJob) status() uploadStatus {
 }
 
 func (s *Server) loadUploadJob(r *http.Request, id int64) (uploadJob, error) {
-	row := s.DB.QueryRowContext(r.Context(), `SELECT status, payload_json, progress, total, COALESCE(message,''), COALESCE(error,''), created_at, COALESCE(started_at,''), COALESCE(finished_at,'') FROM jobs WHERE id=? AND type='upload'`, id)
+	row := s.DB.QueryRowContext(r.Context(), `SELECT status, payload_json, progress, total, COALESCE(instance_id,0), COALESCE(message,''), COALESCE(error,''), created_at, COALESCE(started_at,''), COALESCE(finished_at,'') FROM jobs WHERE id=? AND type='upload'`, id)
 	var j uploadJob
 	j.ID = id
 	var payloadJSON string
-	if err := row.Scan(&j.Status, &payloadJSON, &j.Progress, &j.Total, &j.Message, &j.Error, &j.CreatedAt, &j.StartedAt, &j.FinishedAt); err != nil {
+	if err := row.Scan(&j.Status, &payloadJSON, &j.Progress, &j.Total, &j.InstanceID, &j.Message, &j.Error, &j.CreatedAt, &j.StartedAt, &j.FinishedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return uploadJob{}, errs.New(errs.CodeNotFound, http.StatusNotFound, "upload not found")
 		}

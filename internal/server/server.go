@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -162,6 +163,10 @@ func secureHeaders(next http.Handler) http.Handler {
 		w.Header().Set("Referrer-Policy", "same-origin")
 		// Allow same-origin frames so the SPA can iframe /comfy/.
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		w.Header().Set("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+		if !strings.HasPrefix(r.URL.Path, "/comfy") {
+			w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'")
+		}
 		next.ServeHTTP(w, r)
 	})
 }
@@ -216,10 +221,14 @@ func sameOrigin(r *http.Request) bool {
 // ----- helpers -----
 
 func decodeJSON(r *http.Request, v any) error {
+	r.Body = http.MaxBytesReader(nil, r.Body, 1<<20)
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(v); err != nil {
 		return errs.New(errs.CodeBadRequest, http.StatusBadRequest, "invalid JSON: "+err.Error())
+	}
+	if dec.Decode(&struct{}{}) != io.EOF {
+		return errs.New(errs.CodeBadRequest, http.StatusBadRequest, "invalid JSON: multiple values")
 	}
 	return nil
 }

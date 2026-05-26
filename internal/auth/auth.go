@@ -4,6 +4,7 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
 	"crypto/subtle"
 	"database/sql"
 	"encoding/base64"
@@ -27,6 +28,7 @@ const (
 	Issuer = "ComfyNexus"
 	// MaxFailedAttempts5m caps the failed login count per IP within 5 minutes.
 	MaxFailedAttempts5m = 5
+	sessionHashPrefix   = "sha256:"
 )
 
 // Service bundles auth logic; held as a singleton in the API layer.
@@ -133,7 +135,7 @@ func (s *Service) CreateSession(ctx context.Context, userID int64, ip, ua string
 	exp := s.now().Add(s.SessionTTL)
 	if _, err := s.DB.ExecContext(ctx,
 		`INSERT INTO sessions(token, user_id, expires_at, ip, user_agent) VALUES(?, ?, ?, ?, ?)`,
-		tok, userID, exp, ip, ua); err != nil {
+		hashSessionToken(tok), userID, exp, ip, ua); err != nil {
 		return "", time.Time{}, err
 	}
 	return tok, exp, nil
@@ -143,28 +145,46 @@ func (s *Service) LookupSession(ctx context.Context, token string) (*Session, er
 	if token == "" {
 		return nil, errs.New(errs.CodeUnauthorized, http.StatusUnauthorized, "no session")
 	}
+	lookupToken := hashSessionToken(token)
 	row := s.DB.QueryRowContext(ctx, `
 		SELECT s.token, s.user_id, s.expires_at, u.username, u.role, u.locale
 		FROM sessions s JOIN users u ON u.id = s.user_id
-		WHERE s.token = ?`, token)
+		WHERE s.token = ?`, lookupToken)
 	var sess Session
 	if err := row.Scan(&sess.Token, &sess.UserID, &sess.ExpiresAt, &sess.Username, &sess.Role, &sess.Locale); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.New(errs.CodeUnauthorized, http.StatusUnauthorized, "invalid session")
+			row = s.DB.QueryRowContext(ctx, `
+				SELECT s.token, s.user_id, s.expires_at, u.username, u.role, u.locale
+				FROM sessions s JOIN users u ON u.id = s.user_id
+				WHERE s.token = ?`, token)
+			if err := row.Scan(&sess.Token, &sess.UserID, &sess.ExpiresAt, &sess.Username, &sess.Role, &sess.Locale); err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return nil, errs.New(errs.CodeUnauthorized, http.StatusUnauthorized, "invalid session")
+				}
+				return nil, err
+			}
+			_, _ = s.DB.ExecContext(ctx, `UPDATE sessions SET token = ? WHERE token = ?`, lookupToken, token)
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 	if s.now().After(sess.ExpiresAt) {
-		_, _ = s.DB.ExecContext(ctx, `DELETE FROM sessions WHERE token = ?`, token)
+		_, _ = s.DB.ExecContext(ctx, `DELETE FROM sessions WHERE token IN (?, ?)`, lookupToken, token)
 		return nil, errs.New(errs.CodeUnauthorized, http.StatusUnauthorized, "session expired")
 	}
-	_, _ = s.DB.ExecContext(ctx, `UPDATE sessions SET last_seen = CURRENT_TIMESTAMP WHERE token = ?`, token)
+	sess.Token = token
+	_, _ = s.DB.ExecContext(ctx, `UPDATE sessions SET last_seen = CURRENT_TIMESTAMP WHERE token = ?`, lookupToken)
 	return &sess, nil
 }
 
 func (s *Service) DeleteSession(ctx context.Context, token string) error {
-	_, err := s.DB.ExecContext(ctx, `DELETE FROM sessions WHERE token = ?`, token)
+	_, err := s.DB.ExecContext(ctx, `DELETE FROM sessions WHERE token IN (?, ?)`, hashSessionToken(token), token)
 	return err
+}
+
+func hashSessionToken(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return sessionHashPrefix + base64.RawStdEncoding.EncodeToString(sum[:])
 }
 
 // ----- login attempt rate limiting -----

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/Youzini-afk/ComfyNexus/internal/auth"
 	"github.com/Youzini-afk/ComfyNexus/internal/errs"
@@ -25,6 +26,7 @@ func (s *Server) handleSetupRequired(w http.ResponseWriter, r *http.Request) {
 type setupReq struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Token    string `json:"token,omitempty"`
 }
 
 type setupResp struct {
@@ -33,8 +35,29 @@ type setupResp struct {
 }
 
 func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
+	var req setupReq
+	if err := decodeJSON(r, &req); err != nil {
+		errs.Write(w, err)
+		return
+	}
+	if s.Cfg.SetupToken != "" {
+		supplied := r.Header.Get("X-Setup-Token")
+		if supplied == "" {
+			supplied = req.Token
+		}
+		if supplied != s.Cfg.SetupToken {
+			errs.Write(w, errs.New(errs.CodeForbidden, http.StatusForbidden, "invalid setup token"))
+			return
+		}
+	}
+	tx, err := s.DB.BeginTx(r.Context(), nil)
+	if err != nil {
+		errs.Write(w, err)
+		return
+	}
+	defer tx.Rollback()
 	var n int
-	if err := s.DB.QueryRowContext(r.Context(), `SELECT COUNT(*) FROM users`).Scan(&n); err != nil {
+	if err := tx.QueryRowContext(r.Context(), `SELECT COUNT(*) FROM users`).Scan(&n); err != nil {
 		errs.Write(w, err)
 		return
 	}
@@ -42,11 +65,7 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 		errs.Write(w, errs.New(errs.CodeAuthSetupComplete, http.StatusConflict, "setup already complete"))
 		return
 	}
-	var req setupReq
-	if err := decodeJSON(r, &req); err != nil {
-		errs.Write(w, err)
-		return
-	}
+	req.Username = strings.TrimSpace(req.Username)
 	if req.Username == "" {
 		req.Username = "admin"
 	}
@@ -64,9 +83,13 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 		errs.Write(w, err)
 		return
 	}
-	if _, err := s.DB.ExecContext(r.Context(),
+	if _, err := tx.ExecContext(r.Context(),
 		`INSERT INTO users(username, password_hash, totp_secret, role) VALUES(?, ?, ?, 'admin')`,
 		req.Username, hash, secret); err != nil {
+		errs.Write(w, err)
+		return
+	}
+	if err := tx.Commit(); err != nil {
 		errs.Write(w, err)
 		return
 	}

@@ -54,8 +54,16 @@ export function AppLayout(): ReactNode {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-bg text-fg">
-        {t('actions.loading')}
+      <div
+        className="flex h-screen items-center justify-center bg-bg text-fg"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-brand border-t-transparent" aria-hidden="true" />
+          {t('actions.loading')}
+        </span>
       </div>
     );
   }
@@ -93,7 +101,8 @@ export function AppLayout(): ReactNode {
           <button
             className="ml-auto md:hidden"
             onClick={() => setMobileOpen(false)}
-            aria-label="Close sidebar"
+            aria-label={t('actions.close')}
+            title={t('actions.close')}
           >
             <X size={18} className="text-fg-muted" />
           </button>
@@ -131,7 +140,7 @@ export function AppLayout(): ReactNode {
       <main className="flex-1 overflow-auto">
         {/* Mobile top bar */}
         <div className="flex items-center gap-2 border-b border-border bg-bg-soft px-4 py-3 md:hidden">
-          <button onClick={() => setMobileOpen(true)} aria-label="Open sidebar">
+          <button onClick={() => setMobileOpen(true)} aria-label={t('actions.menu')} title={t('actions.menu')}>
             <Menu size={20} className="text-fg-muted" />
           </button>
           <span className="text-sm font-semibold">{t('appName')}</span>
@@ -156,7 +165,8 @@ function NavItem({
   return (
     <Link
       to={to}
-      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+      aria-current={active ? 'page' : undefined}
+      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-brand/40 ${
         active
           ? 'bg-bg-card text-fg'
           : 'text-fg-muted hover:bg-bg-card hover:text-fg'
