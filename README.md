@@ -63,7 +63,7 @@ python main.py --listen 127.0.0.1 --port 8188
 
 - Backend: Go, Chi, `golang.org/x/crypto/ssh`, `github.com/pkg/sftp`, SQLite (`modernc.org/sqlite`)
 - Frontend: Vite, React, TypeScript, TanStack-style query patterns, Tailwind CSS, i18next
-- Deployment: Docker multi-stage build, Alpine runtime, Zeabur-compatible `$PORT`
+- Deployment: Zeabur native build via `zbpack`, plus optional Docker multi-stage build for other hosts
 
 ## Quick start / 本地启动
 
@@ -128,7 +128,7 @@ Then test and activate the instance.
 ## Zeabur deployment / Zeabur 部署
 
 1. Import this GitHub repository into Zeabur.
-2. Use Dockerfile deployment. `zbpack.json` keeps Dockerfile mode enabled.
+2. Use Zeabur's native `zbpack` build. `zbpack.json` sets `ignore_dockerfile: true` to avoid Zeabur Docker image-policy false positives.
 3. Attach a persistent volume to `/data`.
 4. Configure variables:
 
@@ -146,9 +146,17 @@ HF_TOKEN=<optional>
 
 Zeabur 会自动提供 HTTPS 与公网子域名。大模型文件建议使用“远端 URL 直拉”，不要依赖浏览器经由 Zeabur 上传多 GB 文件。
 
-If Zeabur reports `this service is not allowed to deploy on Zeabur` while checking banned images, make sure you are deploying a commit newer than the Alpine-runtime Dockerfile change. The runtime image intentionally uses Alpine instead of ultra-minimal runtime images so Zeabur can inspect and run the service normally.
+If an old service still uses Dockerfile mode, either redeploy this latest commit or set the Zeabur environment variable below to force native build:
 
-如果 Zeabur 在 `checking for banned images` 后报 `this service is not allowed to deploy on Zeabur`，请确认部署的是已切换到 Alpine runtime 的新提交。当前 Dockerfile 避免使用 Zeabur 容易拦截的超精简 runtime 镜像。
+```env
+ZBPACK_IGNORE_DOCKERFILE=true
+```
+
+如果旧服务仍然进入 Dockerfile 构建模式，可以重新部署最新提交，或者在 Zeabur 环境变量里显式添加 `ZBPACK_IGNORE_DOCKERFILE=true`。
+
+If Zeabur reports `this service is not allowed to deploy on Zeabur` while checking banned images, make sure Zeabur is ignoring the Dockerfile. The preferred Zeabur path is now native `zbpack` build (`make build` + `./dist/comfynexus`), not Dockerfile deployment.
+
+如果 Zeabur 在 `checking for banned images` 后报 `this service is not allowed to deploy on Zeabur`，请确认 Zeabur 已忽略 Dockerfile。当前推荐 Zeabur 走原生 `zbpack` 构建：`make build` 后运行 `./dist/comfynexus`。
 
 ## Security notes / 安全说明
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.zeabur.app/zbpack.json",
   "build_command": "make build",
-  "start_command": "/app/comfynexus",
-  "ignore_dockerfile": false
+  "start_command": "./dist/comfynexus",
+  "ignore_dockerfile": true
 }
