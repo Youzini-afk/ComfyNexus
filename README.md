@@ -63,7 +63,7 @@ python main.py --listen 127.0.0.1 --port 8188
 
 - Backend: Go, Chi, `golang.org/x/crypto/ssh`, `github.com/pkg/sftp`, SQLite (`modernc.org/sqlite`)
 - Frontend: Vite, React, TypeScript, TanStack-style query patterns, Tailwind CSS, i18next
-- Deployment: Docker multi-stage build, distroless runtime, Zeabur-compatible `$PORT`
+- Deployment: Docker multi-stage build, Alpine runtime, Zeabur-compatible `$PORT`
 
 ## Quick start / 本地启动
 
@@ -145,6 +145,10 @@ HF_TOKEN=<optional>
 5. If using mounted SSH keys, mount them under a secrets directory such as `/secrets/ssh/id_ed25519` and reference that path from the instance form.
 
 Zeabur 会自动提供 HTTPS 与公网子域名。大模型文件建议使用“远端 URL 直拉”，不要依赖浏览器经由 Zeabur 上传多 GB 文件。
+
+If Zeabur reports `this service is not allowed to deploy on Zeabur` while checking banned images, make sure you are deploying a commit newer than the Alpine-runtime Dockerfile change. The runtime image intentionally uses Alpine instead of ultra-minimal runtime images so Zeabur can inspect and run the service normally.
+
+如果 Zeabur 在 `checking for banned images` 后报 `this service is not allowed to deploy on Zeabur`，请确认部署的是已切换到 Alpine runtime 的新提交。当前 Dockerfile 避免使用 Zeabur 容易拦截的超精简 runtime 镜像。
 
 ## Security notes / 安全说明
 
